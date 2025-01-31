@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "safely-rag-fastapi-test"
+version = "0.1.0"
+description = ""
+authors = ["jiyong.yoon <jyyoon0615@naver.com>"]
+readme = "README.md"
+packages = [{include = "safely_rag_fastapi_test"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.6"
+uvicorn = "^0.34.0"
+sqlalchemy = "^2.0.37"
+psycopg2-binary = "^2.9.10"
+python-dotenv = "^1.0.1"
+langchain-core = "^0.3.31"
+langchain-openai = "^0.3.2"
+langchain-postgres = "^0.0.12"
+psycopg = {extras = ["binary"], version = "^3.2.4"}
+jupyter = "^1.1.1"
+langserve = "^0.3.1"
+sse-starlette = "^2.2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

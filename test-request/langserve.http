@@ -1,0 +1,16 @@
+###
+POST http://localhost:8000/langserve/chat/stream
+Content-Type: application/json
+user_email: {{email}}
+session_id: {{uuid}}
+
+{
+  "input":{
+    "question":[
+      {
+        "content":"좋았어 내 이름을 기억하는구나",
+        "type":"human"
+      }
+    ]
+  }
+}

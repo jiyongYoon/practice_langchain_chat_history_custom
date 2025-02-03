@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends
@@ -5,7 +6,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from chat_session_services import *
 from stream_services import *
-from models import ChatSessionDto, QuestionRequest
+from models import ChatSessionDto, QuestionRequest, ChatMessageDto, MessageDto
 
 
 chat_router = APIRouter()
@@ -16,20 +17,37 @@ async def room_list(user_email: str, db: Session = Depends(get_db)):
     return get_room_list(user_email, db)
 
 
-@chat_router.get("/chats/{user_email}/rooms/{session_id}/multi_count", response_model=ChatSessionDto)
+@chat_router.get("/chats/{user_email}/rooms/{session_id}/multi-count", response_model=ChatSessionDto)
 async def read(user_email: str, session_id: str, db: Session = Depends(get_db)):
     return read_multi_turn(user_email, session_id, db)
 
 
-@chat_router.post("/chats/{user_email}/rooms/{session_id}/multi_count", response_model=ChatSessionDto)
+@chat_router.post("/chats/{user_email}/rooms/{session_id}/multi-count", response_model=ChatSessionDto)
 async def chat(user_email: str, session_id: str, db: Session = Depends(get_db)):
     return update_multi_turn_count(user_email, session_id, db)
 
 
-@chat_router.post("/chats/{user_email}/rooms/{session_id}/multi_refresh", response_model=ChatSessionDto)
+@chat_router.post("/chats/{user_email}/rooms/{session_id}/multi-refresh")
 async def refresh(user_email: str, session_id: str, db: Session = Depends(get_db)):
-    insert_refresh_history(user_email, session_id)
-    return refresh_multi_turn_count(user_email, session_id, db)
+    user_message, ai_message = insert_refresh_history(user_email, session_id)
+    timestamp = datetime.datetime.now()
+    user_message = MessageDto(
+        data=str(user_message),
+        type="human",
+        created_at=timestamp
+    )
+    ai_message = MessageDto(
+        data=str(ai_message),
+        type="ai",
+        created_at=timestamp
+    )
+    db_chat_session = refresh_multi_turn_count(user_email, session_id, db)
+    return ChatMessageDto(
+        id=db_chat_session.id,
+        user_email=db_chat_session.user_email,
+        session_id=db_chat_session.session_id,
+        message=[user_message, ai_message]
+    )
 
 
 @chat_router.get("/chats/{user_email}/rooms/{session_id}")

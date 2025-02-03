@@ -106,5 +106,6 @@ def insert_refresh_history(user_email: str, session_id: str):
     chat_history = get_chat_history(user_email, session_id)
     chat_history.add_user_message("")
     chat_history.add_ai_message(env.context_refresh_ai_message)
+    return "", env.context_refresh_ai_message
 
 

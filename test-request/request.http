@@ -1,5 +1,5 @@
 ### 새로운 채팅방 열기
-GET http://localhost:8000/chats/{{email}}/rooms/{{new}}/multi_count
+GET http://localhost:8000/chats/{{email}}/rooms/{{new}}/multi-count
 
 > {%
 if (response.body && response.body.session_id) {
@@ -9,13 +9,13 @@ client.log("uuid = " + client.global.get("uuid"));
 %}
 
 ### 기존 대화방 멀티턴 갯수 확인
-GET http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi_count
+GET http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi-count
 
 ### 대화 -> 멀티턴 갯수 + 1
-POST http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi_count
+POST http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi-count
 
 ### 멀티턴 갯수 초기화
-POST http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi_refresh
+POST http://localhost:8000/chats/{{email}}/rooms/{{uuid}}/multi-refresh
 
 ### 대화방 삭제
 DELETE http://localhost:8000/chats/{{email}}/rooms/{{uuid}}

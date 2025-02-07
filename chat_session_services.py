@@ -1,12 +1,13 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc, asc
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import and_, desc, asc, delete, select
 from fastapi import HTTPException
 import uuid
 
 import env
 import models
 import tablename_hasher
-from models import ChatSession, multi_turn_default_count
+from models import ChatSession, multi_turn_default_count, get_chat_history_entity_include_create
 
 
 def get_room_list(user_email: str, db: Session):
@@ -103,7 +104,7 @@ def refresh_multi_turn_count(user_email: str, session_id: str, db: Session):
 
 def get_room_history(user_email: str, session_id: str, db: Session):
     tb_name = tablename_hasher.get_sharding_tb_name(user_email)
-    chat_history_entity = models.create_chat_history_entity(tb_name)
+    chat_history_entity = models.get_chat_history_entity_include_create(tb_name)
     chat_history_entity_list = db.query(chat_history_entity)\
         .filter(
             and_(
@@ -136,3 +137,50 @@ def delete_chat(user_email: str, session_id: str, db: Session):
     db.commit()
     db.refresh(db_chat_session)
     return db_chat_session
+
+
+def delete_all_chats_by_user_email(user_email: str, batch_size: int, db: Session):
+    total_deleted = 0
+
+    try:
+        # 트랜잭션 시작
+        db.begin()
+
+        # ChatSession 삭제
+        delete_chat_session_stmt = delete(ChatSession).where(ChatSession.user_email == user_email)
+        db.execute(delete_chat_session_stmt)
+
+        # ChatHistory 배치 삭제
+        tb_name = tablename_hasher.get_sharding_tb_name(user_email)
+        chat_history_entity = get_chat_history_entity_include_create(tb_name)
+
+        while True:
+            subquery = select(chat_history_entity.id)\
+                .where(chat_history_entity.user_email == user_email)\
+                .limit(batch_size)
+
+            delete_chat_history_stmt = delete(chat_history_entity)\
+                .where(chat_history_entity.id.in_(subquery))\
+                .execution_options(synchronize_session=False)
+
+            result = db.execute(delete_chat_history_stmt)
+            if result.rowcount == 0:
+                break
+
+            total_deleted += result.rowcount
+
+        # 모든 작업이 성공적으로 완료되면 커밋
+        db.commit()
+        print(f"===> Successfully deleted chat room. Total records deleted: {total_deleted}")
+
+    except SQLAlchemyError as e:
+        # 오류 발생 시 롤백
+        db.rollback()
+        print(f"===> Error occurred: {str(e)}")
+        raise
+
+    finally:
+        # 세션 상태 초기화
+        db.expire_all()
+
+    return total_deleted

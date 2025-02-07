@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from db import get_db
 from chat_session_services import *
 from stream_services import *
-from models import ChatSessionDto, QuestionRequest, ChatMessageDto, MessageDto
+from models import ChatSessionDto, QuestionRequest, ChatMessageDto, MessageDto, ChatDeleteRequest
 
 
 chat_router = APIRouter()
@@ -58,6 +58,15 @@ async def room_history(user_email: str, session_id: str, db: Session = Depends(g
 @chat_router.delete("/chats/{user_email}/rooms/{session_id}", response_model=ChatSessionDto)
 async def delete(user_email: str, session_id: str, db: Session = Depends(get_db)):
     return delete_chat(user_email, session_id, db)
+
+
+@chat_router.delete("/chats")
+async def delete_chats(chat_delete_request: ChatDeleteRequest, db: Session = Depends(get_db)):
+    return delete_all_chats_by_user_email(
+        user_email=chat_delete_request.user_email,
+        batch_size=3,
+        db=db
+    )
 
 
 rag_router = APIRouter()

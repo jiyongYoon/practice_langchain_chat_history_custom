@@ -51,3 +51,11 @@ Content-Type: application/json
 
 ### 채팅 히스토리 불러오기
 GET http://localhost:8000/chats/{{email}}/rooms/{{uuid}}
+
+### 채팅 방 및 채팅 내역 모두 삭제
+DELETE http://localhost:8000/chats
+Content-Type: application/json
+
+{
+  "user_email": "{{email}}"
+}

@@ -37,6 +37,10 @@ class QuestionRequest(BaseModel):
     question: str
 
 
+class ChatDeleteRequest(BaseModel):
+    user_email: str
+
+
 ## 실제 저장되는 json 데이터 스키마 그대로
 # class MessageContentDto(BaseModel):
 #     id: Optional[str] = None
@@ -61,7 +65,7 @@ class ChatMessageDto(BaseModel):
     message: List[MessageDto]
 
 
-def create_chat_history_entity(table_name):
+def get_chat_history_entity_include_create(table_name):
     if table_name not in _chat_history_entity_cache:
         class ChatHistoryEntity(Base):
             __tablename__ = table_name
